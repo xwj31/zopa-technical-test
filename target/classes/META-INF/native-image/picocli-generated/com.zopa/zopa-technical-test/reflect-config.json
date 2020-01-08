@@ -1,0 +1,13 @@
+[
+  {
+    "name" : "com.zopa.Application",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "fields" : [
+      { "name" : "fileLocation" },
+      { "name" : "loanAmount" }
+    ]
+  }
+]
