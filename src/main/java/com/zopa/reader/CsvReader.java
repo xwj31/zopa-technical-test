@@ -1,7 +1,7 @@
 package com.zopa.reader;
 
 import com.zopa.error.ReadFileError;
-import com.zopa.model.Lender;
+import com.zopa.model.LoanQuote;
 
 import java.io.*;
 import java.math.BigDecimal;
@@ -12,8 +12,8 @@ import java.util.stream.Collectors;
 public class CsvReader {
 
     //loading the whole csv into a list, but could load line per line, if the csv is large
-    public List<Lender> processInputFile(String fileLocation) {
-        List<Lender> inputList = new ArrayList<Lender>();
+    public List<LoanQuote> processInputFile(String fileLocation) {
+        List<LoanQuote> inputList = new ArrayList<LoanQuote>();
         try{
             File inputFile = new File(fileLocation);
             InputStream inputFileStream = new FileInputStream(inputFile);
@@ -30,13 +30,13 @@ public class CsvReader {
         return inputList;
     }
 
-    private Function<String, Lender> mapToItem = (line) -> {
+    private Function<String, LoanQuote> mapToItem = (line) -> {
         String[] lenderRecord = line.split(",");
 
-        Lender lender = new Lender();
-        lender.setName(lenderRecord[0]);
-        lender.setRate(new BigDecimal(lenderRecord[1]));
-        lender.setAvailable(Integer.parseInt(lenderRecord[2]));
-        return lender;
+        LoanQuote loanQuote = new LoanQuote();
+        loanQuote.setLenderName(lenderRecord[0]);
+        loanQuote.setRate(new BigDecimal(lenderRecord[1]));
+        loanQuote.setAmountAvailable(Integer.parseInt(lenderRecord[2]));
+        return loanQuote;
     };
 }

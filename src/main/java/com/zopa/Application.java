@@ -1,15 +1,11 @@
 package com.zopa;
 
 import com.zopa.error.LenderRetrievalError;
-import com.zopa.model.Lender;
-import com.zopa.output.CliOutputFormatter;
+import com.zopa.model.LoanQuote;
 import com.zopa.reader.CsvReader;
 import picocli.CommandLine;
 
-import java.math.BigDecimal;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Stream;
+import java.util.*;
 
 @CommandLine.Command(name = "ratecalculator", description = "Calculate the best " +
         "available rate from a supplied list of lenders")
@@ -22,62 +18,64 @@ public class Application implements Runnable {
     @CommandLine.Parameters( index = "1", arity = "1..*", description = "Loan amount is required" )
     private int loanAmount;
 
-    //TODO: possible add help -h option?
-
-    Lender chosenLender = null;
+    public List<List<LoanQuote>> completeLoanQuoteSet = new ArrayList<>();
 
     public static void main(String... args) {
         System.exit(new CommandLine(new Application()).execute(args));
     }
 
     public void run() {
-        //check the loan amount is a £100 increment
-        //TODO: refactor this bad code
+        //check the loan amount is a 100 increment
+        //TODO: refactor this
         if (loanAmount % 100 == 0) {
             //also check the amount is between 1000 and 1500
             if (loanAmount >= 1000 &&
                     loanAmount <= 15000) {
                 CsvReader csvReader = new CsvReader();
-                List<Lender> lenders = csvReader.processInputFile(fileLocation);
+                List<LoanQuote> loanQuotes = csvReader.processInputFile(fileLocation);
 
-                Stream<Lender> filteredStream = lenders.stream()
-                        .filter(lender -> lender.checkAvailableAmount(loanAmount)) //remove lenders that cannot loan the full amount
-                        .sorted(Comparator.comparing(Lender::getRate)); // order by loan rate //TODO: check override
+                //sort the input list so the lowest rate is processed first
+                loanQuotes.sort(Comparator.comparing(LoanQuote::getRate));
 
-                chosenLender = filteredStream.findFirst().orElseThrow(LenderRetrievalError::new); //TODO: doesnt feel right
-                calculateLoan(chosenLender, loanAmount);
+                loanQuotes.stream().findFirst().orElseThrow(LenderRetrievalError::new);
+                minChange(loanQuotes, new ArrayList<>());
+
+                // find the lowest rate for each loan set
+                for (List<LoanQuote> loanQuoteSet: completeLoanQuoteSet) {
+                    loanQuoteSet.forEach(LoanQuote::calculateQuote);
+
+                }
+
             } else {
                 System.out.println("Please enter an amount between 1000 and 15000");
             }
         } else {
             System.out.println("Loan amount must be in increments of 100");
         }
+
+        System.out.println("Requested amount: " +loanAmount);
+        //System.out.println("Rate " + rateSum);
+        //System.out.println("Monthly repayment: £" + monthlyRepayment);
+        //System.out.println("Total repayment: £" + totalRepayment);
+
     }
 
-    /**
-     *                    principal * rate
-     *       payment =  -------------------      where n = 12 * years,
-     *                  1  - (1 + r)^(-n)              r = (rate / 100) / 12
-     *
-     * @param lender
-     * @param loanAmount
-     */
+    public void minChange(List<LoanQuote> loanQuoteList, List<LoanQuote> workingList) {
+        for (int i = 0; i < loanQuoteList.size(); i++) {
+            List<LoanQuote> list = new ArrayList<>(workingList);
+            list.add(loanQuoteList.get(i));
 
-    //TODO: move this to big decimal
-    public static void calculateLoan(Lender lender, int loanAmount) {
-        int years = 3;
-        double rate = lender.getRate().doubleValue();
+            //recursive call
+            minChange(loanQuoteList.subList(i + 1, loanQuoteList.size()), list);
+        }
 
-        double r = (rate / 100) / 12;
-        double n = 12 * years;
+        int cumulativeAmount = 0;
+        for (LoanQuote loanQuote : workingList) {
+            cumulativeAmount += loanQuote.getAmountAvailable();
+        }
 
-        double monthlyRepayment = (loanAmount * r) / (1 - Math.pow(1+r, -n));
-        double totalRepayment = monthlyRepayment * n;
-
-        CliOutputFormatter cliOutputFormatter =
-                new CliOutputFormatter(loanAmount,
-                        lender.getRate(),
-                        BigDecimal.valueOf(monthlyRepayment),
-                        BigDecimal.valueOf(totalRepayment));
+        if (cumulativeAmount == loanAmount) {
+            completeLoanQuoteSet.add(workingList);
+        }
     }
 }
