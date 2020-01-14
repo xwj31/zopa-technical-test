@@ -33,7 +33,6 @@ public class QuoteCalculation {
 
         loanQuoteList.forEach(LoanQuote::calculateQuote);
 
-        //TODO: check the maths
         double monthlyRepayment = loanQuoteList
                 .stream()
                 .mapToDouble(LoanQuote::getMonthlyRepayment)
@@ -50,7 +49,8 @@ public class QuoteCalculation {
             sum += loanQuoteRate;
         }
 
-        //TODO: mean average, is this correct? check the maths
+        //blended rate
+        //TODO: implement half round up
         BigDecimal rate = BigDecimal.valueOf(sum / loanQuoteList.size());
 
         //TODO: null checks for returned values before printing

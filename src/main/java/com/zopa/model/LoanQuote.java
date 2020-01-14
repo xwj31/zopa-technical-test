@@ -70,7 +70,7 @@ public class LoanQuote implements Comparable<LoanQuote> {
         int years = loanLengthInMonths / 12; //36 months loan term //TODO: move this to a properties class or constant
 
         double rate = getRate().doubleValue();
-        double r = (rate / 100) / 12;
+        double r = rate / 12;
         double n = 12 * years;
 
         double monthlyRepayment = (amountAvailable * r) / ( 1 - Math.pow(1 + r, -n));
