@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 public class LoanQuote implements Comparable<LoanQuote> {
 
+    private static final int loanLengthInMonths = 36;
     private String lenderName;
     private BigDecimal rate;
     private int amountAvailable;
@@ -66,7 +67,7 @@ public class LoanQuote implements Comparable<LoanQuote> {
      */
     public void calculateQuote() {
 
-        int years = 3; //36 months loan term //TODO: move this to a properties class or constant
+        int years = loanLengthInMonths / 12; //36 months loan term //TODO: move this to a properties class or constant
 
         double rate = getRate().doubleValue();
         double r = (rate / 100) / 12;
