@@ -1,16 +1,19 @@
 package com.zopa.model;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 
 public class LoanQuote implements Comparable<LoanQuote> {
 
-    private static final int loanLengthInMonths = 36;
-    private String lenderName;
-    private BigDecimal rate;
-    private int amountAvailable;
+    private static final int LOAN_LENGTH_IN_MONTHS = 36;
 
-    private double monthlyRepayment;
-    private double totalRepayment;
+    private String lenderName;
+    private BigDecimal lenderRate;
+    private int lenderAmountAvailable;
+
+    private BigDecimal monthlyRepayment;
+    private BigDecimal totalRepayment;
 
     public String getLenderName() {
         return lenderName;
@@ -20,35 +23,35 @@ public class LoanQuote implements Comparable<LoanQuote> {
         this.lenderName = lenderName;
     }
 
-    public BigDecimal getRate() {
-        return rate;
+    public BigDecimal getLenderRate() {
+        return lenderRate;
     }
 
-    public void setRate(BigDecimal rate) {
-        this.rate = rate;
+    public void setLenderRate(BigDecimal lenderRate) {
+        this.lenderRate = lenderRate;
     }
 
-    public int getAmountAvailable() {
-        return amountAvailable;
+    public int getLenderAmountAvailable() {
+        return lenderAmountAvailable;
     }
 
-    public void setAmountAvailable(int amountAvailable) {
-        this.amountAvailable = amountAvailable;
+    public void setLenderAmountAvailable(int lenderAmountAvailable) {
+        this.lenderAmountAvailable = lenderAmountAvailable;
     }
 
-    public double getMonthlyRepayment() {
+    public BigDecimal getMonthlyRepayment() {
         return monthlyRepayment;
     }
 
-    public void setMonthlyRepayment(double monthlyRepayment) {
+    public void setMonthlyRepayment(BigDecimal monthlyRepayment) {
         this.monthlyRepayment = monthlyRepayment;
     }
 
-    public double getTotalRepayment() {
+    public BigDecimal getTotalRepayment() {
         return totalRepayment;
     }
 
-    public void setTotalRepayment(double totalRepayment) {
+    public void setTotalRepayment(BigDecimal totalRepayment) {
         this.totalRepayment = totalRepayment;
     }
 
@@ -56,25 +59,31 @@ public class LoanQuote implements Comparable<LoanQuote> {
     //https://howtodoinjava.com/sort/collections-sort/
     @Override
     public int compareTo(LoanQuote loanQuote) {
-        return Integer.compare(this.amountAvailable, loanQuote.amountAvailable);
+        return Integer.compare(this.lenderAmountAvailable, loanQuote.lenderAmountAvailable);
     }
 
     /**
-     *                    principal * rate
-     *       payment =  -------------------      where n = 12 * years,
-     *                  1  - (1 + r)^(-n)              r = (rate / 100) / 12
+     *                              principal * rate
+     *  payment =  ----------------------------------------------------     where numberOfMonths = 12 * years,
+     *              1  - (1 + monthlyInterestRate )^(-numberOfMonths)       monthlyInterestRate = rate / 12
      *
      */
-    public void calculateQuote() {
 
-        int years = loanLengthInMonths / 12; //36 months loan term //TODO: move this to a properties class or constant
+    //TODO: check 0% edge case
+    public void calculateLoanQuote() {
 
-        double rate = getRate().doubleValue();
-        double r = rate / 12;
-        double n = 12 * years;
+        int years = LOAN_LENGTH_IN_MONTHS / 12; //36 months loan term
 
-        double monthlyRepayment = (amountAvailable * r) / ( 1 - Math.pow(1 + r, -n));
-        double totalRepayment = monthlyRepayment * n;
+        BigDecimal rate = getLenderRate();
+
+        BigDecimal monthlyInterestRate = rate.divide(new BigDecimal(12), RoundingMode.HALF_UP); //assuming rate is given in decimal form
+        int numberOfMonths = 12 * years;
+
+        BigDecimal monthlyRepayment = (monthlyInterestRate.multiply(new BigDecimal(lenderAmountAvailable)))
+                .divide((BigDecimal.ONE.subtract((monthlyInterestRate.add(BigDecimal.ONE)).pow(
+                        -numberOfMonths, MathContext.DECIMAL32))), RoundingMode.HALF_UP);
+
+        BigDecimal totalRepayment = monthlyRepayment.multiply(new BigDecimal(numberOfMonths));
 
         setMonthlyRepayment(monthlyRepayment);
         setTotalRepayment(totalRepayment);
@@ -84,8 +93,8 @@ public class LoanQuote implements Comparable<LoanQuote> {
     public String toString() {
         return "LoanQuote{" +
                 "lenderName='" + lenderName + '\'' +
-                ", rate=" + rate +
-                ", amountAvailable=" + amountAvailable +
+                ", rate=" + lenderRate +
+                ", amountAvailable=" + lenderAmountAvailable +
                 ", monthlyRepayment=" + monthlyRepayment +
                 ", totalRepayment=" + totalRepayment +
                 '}';

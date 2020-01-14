@@ -35,8 +35,8 @@ public class CsvReader {
 
         LoanQuote loanQuote = new LoanQuote();
         loanQuote.setLenderName(lenderRecord[0]);
-        loanQuote.setRate(new BigDecimal(lenderRecord[1]));
-        loanQuote.setAmountAvailable(Integer.parseInt(lenderRecord[2]));
+        loanQuote.setLenderRate(new BigDecimal(lenderRecord[1]));
+        loanQuote.setLenderAmountAvailable(Integer.parseInt(lenderRecord[2]));
         return loanQuote;
     };
 }
