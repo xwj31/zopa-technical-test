@@ -1,6 +1,8 @@
 package com.zopa;
 
 import com.zopa.calculation.QuoteCalculation;
+import com.zopa.error.LoanAmountRangeError;
+import com.zopa.error.LoanIncrementError;
 import com.zopa.model.LoanQuote;
 import com.zopa.reader.CsvReader;
 import picocli.CommandLine;
@@ -18,29 +20,34 @@ public class Application implements Runnable {
     @CommandLine.Parameters( index = "1", arity = "1..*", description = "Loan amount is required" )
     private int loanAmount;
 
+    public int getLoanAmount() {
+        return loanAmount;
+    }
+
+    public void setLoanAmount(int loanAmount) {
+        this.loanAmount = loanAmount;
+    }
+
     public static void main(String... args) {
         System.exit(new CommandLine(new Application()).execute(args));
     }
 
     public void run() {
         //check the loan amount is a 100 increment
-        //TODO: refactor this
         if (loanAmount % 100 == 0) {
             //also check the amount is between 1000 and 1500
             if (loanAmount >= 1000 &&
                     loanAmount <= 15000) {
-                //TODO: optimise this
                 CsvReader csvReader = new CsvReader();
                 List<LoanQuote> loanQuotes = csvReader.processInputFile(fileLocation);
-
                 QuoteCalculation quoteCalculation = new QuoteCalculation(loanAmount);
-                quoteCalculation.calculateMonthlyAndTotalRepaymentAndPrint(loanQuotes);
+                quoteCalculation.calculateMonthlyAndTotalRepayment(loanQuotes).printCompletedQuote();
 
             } else {
-                System.out.println("Please enter an amount between 1000 and 15000");
+                throw new LoanAmountRangeError();
             }
         } else {
-            System.out.println("Loan amount must be in increments of 100");
+            throw new LoanIncrementError();
         }
     }
 }
