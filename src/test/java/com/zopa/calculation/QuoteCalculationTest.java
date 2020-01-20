@@ -6,7 +6,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -44,7 +43,7 @@ public class QuoteCalculationTest {
         loanQuote6.setLenderRate(new BigDecimal("0.8"));
         loanQuote6.setLenderAmountAvailable(new BigDecimal(14000));
 
-        loanQuoteList = Arrays.asList(loanQuote1, loanQuote2, loanQuote3, loanQuote4, loanQuote5);
+        loanQuoteList = Arrays.asList(loanQuote1, loanQuote2, loanQuote3, loanQuote4, loanQuote5, loanQuote6);
     }
 
     @Test
@@ -54,15 +53,14 @@ public class QuoteCalculationTest {
                 () -> quoteCalculation.calculateMonthlyAndTotalRepayment(loanQuoteList));
     }
 
-    //TODO: broken test
     @Test
     public void calculateQuoteMax() {
-        QuoteCalculation quoteCalculation = new QuoteCalculation(14000);
+        QuoteCalculation quoteCalculation = new QuoteCalculation(15000);
         LoanQuote loanQuote = quoteCalculation.calculateMonthlyAndTotalRepayment(loanQuoteList);
-        assertThat(loanQuote.getMonthlyRepayment(), equalTo(new BigDecimal("51.67")));
-        assertThat(loanQuote.getTotalRepayment(), equalTo(new BigDecimal("1860.12")));
+        assertThat(loanQuote.getMonthlyRepayment(), equalTo(new BigDecimal("1550.14")));
+        assertThat(loanQuote.getTotalRepayment(), equalTo(new BigDecimal("55805.04")));
         assertThat(loanQuote.getLenderRate(), equalTo(new BigDecimal("0.8")));
-        assertThat(loanQuote.getLoanAmount(), equalTo(500));
+        assertThat(loanQuote.getLoanAmount(), equalTo(15000));
     }
 
     @Test
