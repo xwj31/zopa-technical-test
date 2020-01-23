@@ -28,31 +28,13 @@ public class QuoteCalculation {
         //recursively find a set of lenders which results in the loanAmount requested
         findRequestedTotalLoanByLeastLenders(loanQuotes, new ArrayList<>());
 
-        List<LoanQuote> loanQuoteList = completeLoanQuoteSet
-                .stream()
-                .findFirst()
-                .orElseThrow(LenderRetrievalError::new);
-
+        List<LoanQuote> loanQuoteList = findFirstCompleteQuote(completeLoanQuoteSet);
         loanQuoteList.forEach(LoanQuote::calculateLoanQuote);
 
-        BigDecimal monthlyRepayment = loanQuoteList
-                .stream()
-                .map(LoanQuote::getMonthlyRepayment)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        BigDecimal totalRepayment = loanQuoteList
-                .stream()
-                .map(LoanQuote::getTotalRepayment)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        BigDecimal sum = loanQuoteList
-                .stream()
-                .map(LoanQuote::getLenderRate)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        //blended rate
-        BigDecimal rate = sum.divide(new BigDecimal(loanQuoteList.size()), RoundingMode.HALF_UP);
-        return new LoanQuote(rate, monthlyRepayment, totalRepayment, loanAmount);
+        return new LoanQuote(calculateWeightedRateAverage(loanQuoteList),
+                calculateMonthlyRepayment(loanQuoteList),
+                calculateTotalRepayment(loanQuoteList),
+                loanAmount);
     }
 
     private void findRequestedTotalLoanByLeastLenders(List<LoanQuote> loanQuoteList, List<LoanQuote> workingList) {
@@ -71,5 +53,34 @@ public class QuoteCalculation {
         if (cumulativeAmount.equals(new BigDecimal(loanAmount))) {
             completeLoanQuoteSet.add(workingList);
         }
+    }
+
+    private BigDecimal calculateTotalRepayment(List<LoanQuote> loanQuoteList) {
+        return loanQuoteList
+                .stream()
+                .map(LoanQuote::getTotalRepayment)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private BigDecimal calculateMonthlyRepayment(List<LoanQuote> loanQuoteList) {
+        return loanQuoteList
+                .stream()
+                .map(LoanQuote::getMonthlyRepayment)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private List<LoanQuote> findFirstCompleteQuote(List<List<LoanQuote>> completeLoanQuoteSet) {
+        return completeLoanQuoteSet
+                .stream()
+                .findFirst()
+                .orElseThrow(LenderRetrievalError::new);
+    }
+
+    private BigDecimal calculateWeightedRateAverage(List<LoanQuote> loanQuoteList) {
+        return loanQuoteList
+                .stream()
+                .map(LoanQuote::getWeightedAverage)
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .divide(new BigDecimal(loanQuoteList.size()), RoundingMode.HALF_EVEN);
     }
 }

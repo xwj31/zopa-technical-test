@@ -31,6 +31,7 @@ public class LoanQuote implements Comparable<LoanQuote> {
 
     public LoanQuote() {}
 
+    //not removed as we need to identify who the lender was!
     public String getLenderName() {
         return lenderName;
     }
@@ -73,10 +74,6 @@ public class LoanQuote implements Comparable<LoanQuote> {
 
     public int getLoanAmount() {
         return loanAmount;
-    }
-
-    public void setLoanAmount(int loanAmount) {
-        this.loanAmount = loanAmount;
     }
 
     @Override
@@ -128,6 +125,10 @@ public class LoanQuote implements Comparable<LoanQuote> {
             setMonthlyRepayment(monthlyRepayment);
             setTotalRepayment(totalRepayment);
         }
+    }
+
+    public BigDecimal getWeightedAverage(){
+        return lenderAmountAvailable.multiply(lenderRate);
     }
 
     public void printCompletedQuote() {

@@ -15,16 +15,13 @@ public class CsvReader {
     //loading the whole csv into a list, but could load line per line, if the csv is large
     public List<LoanQuote> processInputFile(String fileLocation) {
         Optional<List<LoanQuote>> inputList;
-        try {
-            File inputFile = new File(fileLocation);
-            InputStream inputFileStream = new FileInputStream(inputFile);
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputFileStream));
+        File file = new File(fileLocation);
 
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file))) {
            inputList = Optional.of(bufferedReader.lines()
                    .skip(1) // skip the header of the csv
                    .map(mapToItem)
                    .collect(Collectors.toList()));
-            bufferedReader.close();
         } catch (IOException e) {
             throw new ReadFileError();
         }
